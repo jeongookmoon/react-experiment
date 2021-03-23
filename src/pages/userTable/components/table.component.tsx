@@ -1,10 +1,10 @@
 import React, { ReactElement, useMemo } from 'react';
 import { useTable } from 'react-table';
-import { COLUMNS, IColumn } from '../constants/columns';
+import { GROUPED_COLUMNS, IColumn } from '../constants/columns';
 import MOCK_DATA from '../../../../mock_data/data__id_name_email_gender_ip.json';
 
 function TableComponent(): ReactElement {
-  const columns = useMemo(() => COLUMNS, []);
+  const columns = useMemo(() => GROUPED_COLUMNS, []);
   const data = useMemo(() => MOCK_DATA, []);
 
   const tableInstance = useTable<IColumn>({
