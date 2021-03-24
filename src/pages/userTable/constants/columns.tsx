@@ -1,3 +1,5 @@
+import { ColumnFilter } from '../components/columnFilter.component';
+
 export interface IColumn {
   id: number;
   first_name: string;
@@ -11,26 +13,32 @@ export const COLUMNS = [
   {
     Header: 'Id',
     accessor: 'id' as keyof IColumn,
+    Filter: ColumnFilter,
   },
   {
     Header: 'First Name',
     accessor: 'first_name' as keyof IColumn,
+    Filter: ColumnFilter,
   },
   {
     Header: 'Last Name',
     accessor: 'last_name' as keyof IColumn,
+    Filter: ColumnFilter,
   },
   {
     Header: 'Email',
     accessor: 'email' as keyof IColumn,
+    Filter: ColumnFilter,
   },
   {
     Header: 'Gender',
     accessor: 'gender' as keyof IColumn,
+    Filter: ColumnFilter,
   },
   {
     Header: 'IPv4',
     accessor: 'ip_address' as keyof IColumn,
+    Filter: ColumnFilter,
   },
 ];
 
