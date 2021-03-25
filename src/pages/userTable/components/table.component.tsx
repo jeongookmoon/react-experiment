@@ -36,6 +36,8 @@ function TableComponent(): ReactElement {
     canNextPage,
     canPreviousPage,
     pageOptions,
+    gotoPage,
+    pageCount,
   } = useTable(
     {
       columns,
@@ -111,17 +113,40 @@ function TableComponent(): ReactElement {
         </tbody>
       </table>
       <div>
+        <br />
         <span>
           Page{' '}
           <strong>
             {pageIndex + 1} of {pageOptions.length}{' '}
           </strong>
         </span>
+        <span>
+          | Go to page:{' '}
+          <input
+            type="number"
+            value={pageIndex + 1}
+            onChange={event => {
+              const pageNumber = event.target.value
+                ? Number(event.target.value) - 1
+                : 0;
+              gotoPage(pageNumber);
+            }}
+            style={{ width: '50px' }}
+            min={1}
+            max={pageOptions.length}
+          />{' '}
+        </span>
+        <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+          {'<<'}
+        </button>
         <button onClick={() => previousPage()} disabled={!canPreviousPage}>
           Previous
         </button>
         <button onClick={() => nextPage()} disabled={!canNextPage}>
           Next
+        </button>
+        <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
+          {'>>'}
         </button>
       </div>
     </>
