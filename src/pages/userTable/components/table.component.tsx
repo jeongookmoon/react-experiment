@@ -38,6 +38,7 @@ function TableComponent(): ReactElement {
     pageOptions,
     gotoPage,
     pageCount,
+    setPageSize,
   } = useTable(
     {
       columns,
@@ -50,7 +51,7 @@ function TableComponent(): ReactElement {
     usePagination
   );
 
-  const { globalFilter, pageIndex } = state;
+  const { globalFilter, pageIndex, pageSize } = state;
 
   return (
     <>
@@ -136,6 +137,16 @@ function TableComponent(): ReactElement {
             max={pageOptions.length}
           />{' '}
         </span>
+        <select
+          value={pageSize}
+          onChange={event => setPageSize(Number(event.target.value))}
+        >
+          {[5, 10, 15].map(pageSize => (
+            <option key={pageSize} value={pageSize}>
+              Show {pageSize}
+            </option>
+          ))}
+        </select>{' '}
         <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
           {'<<'}
         </button>
