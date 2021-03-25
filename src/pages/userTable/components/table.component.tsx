@@ -1,5 +1,11 @@
 import React, { ReactElement, useMemo } from 'react';
-import { useTable, useSortBy, useGlobalFilter, useFilters } from 'react-table';
+import {
+  useTable,
+  useSortBy,
+  useGlobalFilter,
+  useFilters,
+  usePagination,
+} from 'react-table';
 import { GROUPED_COLUMNS } from '../constants/columns';
 import MOCK_DATA from '../../../../mock_data/data__id_name_email_gender_ip.json';
 import { SearchComponent } from './search.component';
@@ -21,10 +27,15 @@ function TableComponent(): ReactElement {
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    rows,
     prepareRow,
     state, // for Global Filter
     setGlobalFilter, // for Global Filter
+    page,
+    nextPage,
+    previousPage,
+    canNextPage,
+    canPreviousPage,
+    pageOptions,
   } = useTable(
     {
       columns,
@@ -33,10 +44,11 @@ function TableComponent(): ReactElement {
     },
     useFilters,
     useGlobalFilter,
-    useSortBy
+    useSortBy,
+    usePagination
   );
 
-  const { globalFilter } = state;
+  const { globalFilter, pageIndex } = state;
 
   return (
     <>
@@ -82,7 +94,7 @@ function TableComponent(): ReactElement {
         </thead>
         <tbody {...getTableBodyProps()}>
           {/* Body */}
-          {rows.map((aRow, tbRowIndex) => {
+          {page.map((aRow, tbRowIndex) => {
             prepareRow(aRow);
             return (
               <tr {...aRow.getRowProps()} key={'tableBodyRow' + tbRowIndex}>
@@ -98,6 +110,20 @@ function TableComponent(): ReactElement {
           })}
         </tbody>
       </table>
+      <div>
+        <span>
+          Page{' '}
+          <strong>
+            {pageIndex + 1} of {pageOptions.length}{' '}
+          </strong>
+        </span>
+        <button onClick={() => previousPage()} disabled={!canPreviousPage}>
+          Previous
+        </button>
+        <button onClick={() => nextPage()} disabled={!canNextPage}>
+          Next
+        </button>
+      </div>
     </>
   );
 }
