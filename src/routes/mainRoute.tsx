@@ -1,22 +1,23 @@
 import React, { ReactElement } from 'react';
 import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
-import MainPage from '../pages/main.page';
 import UnknownPage from '../pages/unknown.page';
-import UserTablePage from '../pages/userTable/userTable.page';
+import EditableTable from '../pages/editableTable/editableTable';
+import { Typography } from '@material-ui/core';
 
 function MainRoute(): ReactElement {
   return (
     <Router>
-      <Link to="/">Main</Link>
-      <br />
-      <Link to="/userTable">UserTable</Link>
-      <hr />
+      <div style={{ backgroundColor: '#f1f5f1', height: '3em' }}>
+        <Link
+          to="/"
+          style={{ textDecoration: 'none', color: 'grey', cursor: 'pointer' }}
+        >
+          <Typography>InlineEditTable</Typography>
+        </Link>
+      </div>
       <Switch>
         <Route exact path="/">
-          <MainPage />
-        </Route>
-        <Route exact path="/userTable">
-          <UserTablePage />
+          <EditableTable />
         </Route>
         <Route>
           <UnknownPage />

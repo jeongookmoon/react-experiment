@@ -13,7 +13,7 @@ export const ColumnFilter = ({ column }: FilterProps<any>): ReactElement => {
       <input
         value={filterValue || ''}
         onChange={event => setFilter(event.target.value)}
-        style={{ maxWidth: '70%', textAlign: 'center' }}
+        style={{ maxWidth: '50%', textAlign: 'center' }}
         placeholder="Column Filter"
       />
     </span>
