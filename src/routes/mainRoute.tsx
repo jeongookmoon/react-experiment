@@ -8,11 +8,12 @@ function MainRoute(): ReactElement {
   return (
     <Router>
       <div style={{ backgroundColor: '#f1f5f1', height: '3em' }}>
-        <Link
-          to="/"
-          style={{ textDecoration: 'none', color: 'grey', cursor: 'pointer' }}
-        >
-          <Typography>InlineEditTable</Typography>
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <Typography
+            style={{ color: 'grey', cursor: 'pointer', padding: '1em' }}
+          >
+            InlineEditTable
+          </Typography>
         </Link>
       </div>
       <Switch>
