@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useMemo, useState } from 'react';
+import React, { ReactElement, useMemo, useState } from 'react';
 import {
   useTable,
   useSortBy,
@@ -9,8 +9,9 @@ import {
 } from 'react-table';
 import { GROUPED_COLUMNS } from '../constants/columns';
 import MOCK_DATA from '../../../../mock_data/data__id_name_email_gender_ip.json';
-import { SearchComponent } from './search.component';
-import { ColumnFilter } from './columnFilter.component';
+import { SearchComponent } from './subComponent/search.component';
+import { ColumnFilter } from './subComponent/columnFilter.component';
+import { EditableCell } from './subComponent/editableCell.component';
 
 import MaUTable from '@material-ui/core/Table';
 import TableHead from '@material-ui/core/TableHead';
@@ -21,27 +22,34 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
 import styles from '../editableTable.style.scss';
+import {
+  typeRowValues,
+  jobsInProcessValues,
+} from '../types/tableTypesAndDefaultValues';
 
-type typeRowValues = {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  gender: string;
-  ip_address: string;
-};
 const NON_SELECTED = 'none-selected';
 const PRIMARY_KEY = 'id';
+
+const isAnyJobInProcess = (obj: typeof jobsInProcessValues): boolean =>
+  Object.keys(obj).some(key => obj[key as keyof typeof jobsInProcessValues]);
 
 function TableComponent(): ReactElement {
   const columns = useMemo(() => GROUPED_COLUMNS, []);
   const mockData = useMemo(() => MOCK_DATA, []);
+  const defaultColumn = useMemo(
+    // defines component for render; ex) aColumn.render('Filter') => ColumnFilter component rendered
+    () => ({
+      Filter: ColumnFilter,
+      EditableCell: EditableCell,
+    }),
+    []
+  );
 
   const [selectedRowId, selectedRowIdSet] = useState(NON_SELECTED);
   const [selectedRowValues, selectedRowValuesSet] = useState<
     typeRowValues | undefined
   >(undefined);
-  const [beginEdit, beginEditSet] = useState(false);
+  const [jobsInProcess, jobsInProcessSet] = useState(jobsInProcessValues);
   const [data, dataSet] = useState(mockData);
   const [editedRowValues, editedRowValuesSet] = useState<
     typeRowValues | undefined
@@ -60,7 +68,7 @@ function TableComponent(): ReactElement {
     }
   };
 
-  const updateEditedRowData = ({
+  const updateOrKeepEditedRowData = ({
     rowValues,
     columnId,
     cellValue,
@@ -73,59 +81,6 @@ function TableComponent(): ReactElement {
 
     editedRowValuesSet(newData);
   };
-
-  const EditableCell = ({
-    value: initialCellValue,
-    row: { index, values },
-    column: { id },
-    updateEditedRowData,
-  }: {
-    value: string;
-    row: { index: number; values: typeRowValues };
-    column: { id: string };
-    updateEditedRowData: ({
-      rowId,
-      rowValues,
-      columnId,
-      cellValue,
-    }: {
-      rowId: number;
-      rowValues: typeRowValues;
-      columnId: string;
-      cellValue: string;
-    }) => void;
-  }) => {
-    const [cellValue, cellValueSet] = useState(initialCellValue);
-    const parame = {
-      rowId: index,
-      rowValues: values,
-      columnId: id,
-      cellValue,
-    };
-
-    useEffect(() => {
-      cellValueSet(initialCellValue);
-    }, [initialCellValue]);
-
-    return (
-      <input
-        value={cellValue}
-        onChange={event => {
-          cellValueSet(event.target.value);
-        }}
-        onBlur={() => updateEditedRowData(parame)} // set new row data
-      />
-    );
-  };
-
-  const defaultColumn = useMemo(
-    // defines component for render; ex) aColumn.render('Filter') => ColumnFilter component rendered
-    () => ({
-      Filter: ColumnFilter,
-      Cell: EditableCell,
-    }),
-    []
-  );
 
   const {
     getTableProps,
@@ -148,7 +103,7 @@ function TableComponent(): ReactElement {
       columns,
       data,
       defaultColumn, // custom component
-      updateEditedRowData, // custom function
+      updateOrKeepEditedRowData, // custom function
     },
     useFilters,
     useGlobalFilter,
@@ -172,19 +127,34 @@ function TableComponent(): ReactElement {
       >
         <Button
           type="button"
-          disabled={beginEdit}
+          disabled={isAnyJobInProcess(jobsInProcess)}
           onClick={() => {
-            if (selectedRowValues !== undefined) beginEditSet(true);
+            if (selectedRowValues !== undefined)
+              jobsInProcessSet(prev => {
+                return { ...prev, edit: true };
+              });
           }}
         >
           Edit
         </Button>
 
+        {/* <Button
+          type="button"
+          disabled={beginEdit}
+          onClick={() => {
+            if (selectedRowValues !== undefined) beginEditSet(true);
+          }}
+        >
+          Delete
+        </Button> */}
+
         <Button
           type="button"
-          disabled={!beginEdit}
+          disabled={!jobsInProcess.edit}
           onClick={() => {
-            beginEditSet(false);
+            jobsInProcessSet(prev => {
+              return { ...prev, edit: false };
+            });
             updateTableData();
             editedRowValuesSet(undefined);
           }}
@@ -194,9 +164,11 @@ function TableComponent(): ReactElement {
 
         <Button
           type="button"
-          disabled={!beginEdit}
+          disabled={!jobsInProcess.edit}
           onClick={() => {
-            beginEditSet(false);
+            jobsInProcessSet(prev => {
+              return { ...prev, edit: false };
+            });
             editedRowValuesSet(undefined);
           }}
         >
@@ -272,11 +244,19 @@ function TableComponent(): ReactElement {
                           let rowValues: typeRowValues | undefined = aCell.row
                             .values as typeRowValues;
 
-                          if (beginEdit) {
-                            if (selectedRowId !== aCell.row.id) {
-                              beginEditSet(false);
-                            }
-                          } else {
+                          // case: during any job in process & click on non-selected cell -> cancel job
+                          if (
+                            isAnyJobInProcess(jobsInProcess) &&
+                            selectedRowId !== aCell.row.id
+                          ) {
+                            // case: click on selected cell -> do nothing
+                            // case: click on non-selected cell -> cancel jobs, select id& value
+                            jobsInProcessSet(jobsInProcessValues);
+                          }
+                          // case: no job in process
+                          else {
+                            // case: click on selected cell and no job in process-> deselected id & value
+                            // case: click on non-selected cell -> select id & value
                             rowId =
                               selectedRowId === aCell.row.id
                                 ? NON_SELECTED
@@ -289,13 +269,13 @@ function TableComponent(): ReactElement {
                           }
 
                           selectedRowIdSet(rowId);
-                          selectedRowValuesSet(rowValues as typeRowValues);
+                          selectedRowValuesSet(rowValues);
                         }}
                       >
-                        {beginEdit &&
+                        {jobsInProcess.edit &&
                         selectedRowId === aCell.row.id &&
                         aCell.column.id !== PRIMARY_KEY ? (
-                          aCell.render('Cell')
+                          aCell.render('EditableCell')
                         ) : (
                           <div>{aCell.value}</div>
                         )}
@@ -367,7 +347,7 @@ function TableComponent(): ReactElement {
             {
               selectedRowId,
               selectedRowValues,
-              beginEdit,
+              jobsInProcess,
               globalFilter,
               editedRowValues,
             },
