@@ -245,13 +245,11 @@ function TableComponent(): ReactElement {
                             .values as typeRowValues;
 
                           // case: during any job in process & click on non-selected cell -> cancel job
-                          if (
-                            isAnyJobInProcess(jobsInProcess) &&
-                            selectedRowId !== aCell.row.id
-                          ) {
+                          if (isAnyJobInProcess(jobsInProcess)) {
                             // case: click on selected cell -> do nothing
                             // case: click on non-selected cell -> cancel jobs, select id& value
-                            jobsInProcessSet(jobsInProcessValues);
+                            if (selectedRowId !== aCell.row.id)
+                              jobsInProcessSet(jobsInProcessValues);
                           }
                           // case: no job in process
                           else {
