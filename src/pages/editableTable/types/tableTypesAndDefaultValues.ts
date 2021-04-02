@@ -1,4 +1,4 @@
-export type typeRowValues = {
+export type rowProps = {
   id: number;
   first_name: string;
   last_name: string;
@@ -7,7 +7,7 @@ export type typeRowValues = {
   ip_address: string;
 };
 
-export const jobsInProcessValues = {
+export const defaultJobsStatus = {
   add: false,
   edit: false,
   delete: false,

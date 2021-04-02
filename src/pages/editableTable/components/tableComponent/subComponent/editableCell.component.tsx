@@ -1,5 +1,5 @@
 import React, { ReactElement, useEffect, useState } from 'react';
-import { typeRowValues } from '../../types/tableTypesAndDefaultValues';
+import { rowProps } from '../../../types/tableTypesAndDefaultValues';
 
 export const EditableCell = ({
   value: initialCellValue,
@@ -8,7 +8,7 @@ export const EditableCell = ({
   updateOrKeepEditedRowData,
 }: {
   value: string;
-  row: { index: number; values: typeRowValues };
+  row: { index: number; values: rowProps };
   column: { id: string };
   updateOrKeepEditedRowData: ({
     rowId,
@@ -17,7 +17,7 @@ export const EditableCell = ({
     cellValue,
   }: {
     rowId: number;
-    rowValues: typeRowValues;
+    rowValues: rowProps;
     columnId: string;
     cellValue: string;
   }) => void;
