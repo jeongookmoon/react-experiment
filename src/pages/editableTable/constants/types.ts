@@ -7,8 +7,4 @@ export type rowProps = {
   ip_address: string;
 };
 
-export const defaultJobsStatus = {
-  add: false,
-  edit: false,
-  delete: false,
-};
+export type jobsStatusType = 'add' | 'edit' | 'delete' | undefined;
