@@ -1,14 +1,14 @@
 import React, { Dispatch, ReactElement, SetStateAction, useState } from 'react';
-import { rowProps } from '../../../types/tableTypesAndDefaultValues';
+import { rowProps } from '../../../constants/types';
 
 function EditableCellForAdd({
   initialCellValue,
   cellKey,
-  addedRowSet,
+  newRowSet,
 }: {
   initialCellValue: string;
   cellKey: keyof rowProps;
-  addedRowSet: Dispatch<SetStateAction<rowProps>>;
+  newRowSet: Dispatch<SetStateAction<rowProps | undefined>>;
 }): ReactElement {
   const [cellValue, cellValueSet] = useState(initialCellValue);
   return (
@@ -18,8 +18,9 @@ function EditableCellForAdd({
         cellValueSet(event.target.value);
       }}
       onBlur={() =>
-        addedRowSet(prev => {
-          return { ...prev, [cellKey]: cellValue };
+        newRowSet(prev => {
+          if (prev) return { ...prev, [cellKey]: cellValue };
+          else throw new Error(`EditableCellForAdd prev: ${prev} not defined`);
         })
       }
     />

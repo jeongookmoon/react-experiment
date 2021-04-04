@@ -1,14 +1,11 @@
-import React, { Dispatch, ReactElement, SetStateAction, useState } from 'react';
+import React, { Dispatch, ReactElement, SetStateAction } from 'react';
 
 import MaUTable from '@material-ui/core/Table';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import TableBody from '@material-ui/core/TableBody';
-import {
-  rowProps,
-  defaultJobsStatus,
-} from '../../types/tableTypesAndDefaultValues';
+import { rowProps, jobsStatusType } from '../../constants/types';
 import {
   HeaderGroup,
   Row,
@@ -17,9 +14,7 @@ import {
   TablePropGetter,
   TableProps,
 } from 'react-table';
-import { IColumn } from '../../constants/columns';
-import { NON_SELECTED, PRIMARY_KEY } from '../../constants/tableGeneral';
-import { EditableCell } from './subComponent/editableCell.component';
+import { PRIMARY_KEY } from '../../constants/constants';
 import EditableCellForAdd from './subComponent/editableCellForAdd.component.';
 
 function TableComponent({
@@ -28,13 +23,12 @@ function TableComponent({
   headerGroups,
   prepareRow,
   page,
-  selectedRowId,
-  data,
-  isAnyJobInProcess,
   jobsStatus,
   jobsStatusSet,
-  selectedRowIdSet,
+  selectedRowValues,
   selectedRowValuesSet,
+  newRow,
+  newRowSet,
 }: {
   getTableProps: (
     // Switch object with <Record<string, unknown>> throws type error..
@@ -52,24 +46,28 @@ function TableComponent({
   prepareRow: (row: Row<object>) => void;
   // eslint-disable-next-line @typescript-eslint/ban-types
   page: Row<object>[];
-  selectedRowId: string;
-  data: IColumn[];
-  isAnyJobInProcess: (obj: typeof defaultJobsStatus) => boolean;
-  jobsStatus: typeof defaultJobsStatus;
-  jobsStatusSet: Dispatch<SetStateAction<typeof defaultJobsStatus>>;
-  selectedRowIdSet: Dispatch<SetStateAction<string>>;
+  jobsStatus: jobsStatusType;
+  jobsStatusSet: Dispatch<SetStateAction<jobsStatusType>>;
+  selectedRowValues: rowProps | undefined;
   selectedRowValuesSet: Dispatch<SetStateAction<rowProps | undefined>>;
+  newRow: rowProps | undefined;
+  newRowSet: Dispatch<SetStateAction<rowProps | undefined>>;
 }): ReactElement {
-  const sample: rowProps = {
-    id: (Object.keys(data).length + 1) as number,
-    first_name: '',
-    last_name: '',
-    email: '',
-    gender: '',
-    ip_address: '',
+  const isCurrentRowSelected = (
+    rowId: number,
+    selectedRowValues: rowProps | undefined
+  ) => {
+    return selectedRowValues && selectedRowValues.id === rowId;
   };
-  const [addedRow, addedRowSet] = useState(sample);
-  console.log('addedRow', addedRow);
+
+  const cancelCurrentJobAndSelectTheRow = (
+    rowValues: rowProps | undefined
+  ): void => {
+    jobsStatusSet(undefined);
+    selectedRowValuesSet(rowValues);
+    newRowSet(undefined);
+  };
+
   return (
     <MaUTable {...getTableProps()} stickyHeader>
       <TableHead>
@@ -110,19 +108,19 @@ function TableComponent({
 
       <TableBody {...getTableBodyProps()}>
         <TableRow>
-          {addedRow &&
-            Object.keys(sample).map((aKey, index) => {
+          {newRow &&
+            Object.keys(newRow).map((aKey, index) => {
               return (
                 <TableCell key={'newRow' + index.toString()}>
                   {aKey === PRIMARY_KEY ? (
-                    <div>{sample[aKey]}</div>
+                    <div>{newRow[aKey]}</div>
                   ) : (
                     <EditableCellForAdd
                       initialCellValue={
-                        sample[aKey as keyof rowProps] as string
+                        newRow[aKey as keyof rowProps] as string
                       }
                       cellKey={aKey as keyof rowProps}
-                      addedRowSet={addedRowSet}
+                      newRowSet={newRowSet}
                     />
                   )}
                 </TableCell>
@@ -131,13 +129,14 @@ function TableComponent({
         </TableRow>
         {/* Body */}
         {page.map((aRow, tbRowIndex) => {
+          const rowId = parseInt(aRow.id) + 1; // add 1 since rowId starts from 1 instead of 0
           prepareRow(aRow);
           return (
             <TableRow
               {...aRow.getRowProps()}
               key={'tableBodyRow' + tbRowIndex}
               style={
-                selectedRowId === aRow.id
+                isCurrentRowSelected(rowId, selectedRowValues)
                   ? {
                       transition: '.2s',
                       backgroundColor: '#f1f5f1',
@@ -152,38 +151,32 @@ function TableComponent({
                     {...aCell.getCellProps()}
                     key={'cell' + cellIndex}
                     onClick={() => {
-                      let rowId = aCell.row.id;
-                      let rowValues: rowProps | undefined = aCell.row
-                        .values as rowProps;
+                      switch (jobsStatus) {
+                        case 'add':
+                        case 'delete':
+                          cancelCurrentJobAndSelectTheRow(
+                            aCell.row.values as rowProps
+                          );
+                          break;
 
-                      // case: during any job in process & click on non-selected cell -> cancel job
-                      if (isAnyJobInProcess(jobsStatus)) {
-                        // case: click on selected cell -> do nothing
-                        // case: click on non-selected cell -> cancel jobs, select id& value
-                        if (selectedRowId !== aCell.row.id)
-                          jobsStatusSet(defaultJobsStatus);
+                        case 'edit':
+                          if (!isCurrentRowSelected(rowId, selectedRowValues))
+                            cancelCurrentJobAndSelectTheRow(
+                              aCell.row.values as rowProps
+                            );
+                          break;
+
+                        default:
+                          selectedRowValuesSet(
+                            isCurrentRowSelected(rowId, selectedRowValues)
+                              ? undefined
+                              : (aCell.row.values as rowProps)
+                          );
                       }
-                      // case: no job in process
-                      else {
-                        // case: click on selected cell and no job in process-> deselected id & value
-                        // case: click on non-selected cell -> select id & value
-                        rowId =
-                          selectedRowId === aCell.row.id
-                            ? NON_SELECTED
-                            : aCell.row.id;
-
-                        rowValues =
-                          selectedRowId === aCell.row.id
-                            ? undefined
-                            : (aCell.row.values as rowProps);
-                      }
-
-                      selectedRowIdSet(rowId);
-                      selectedRowValuesSet(rowValues);
                     }}
                   >
-                    {jobsStatus.edit &&
-                    selectedRowId === aCell.row.id &&
+                    {jobsStatus === 'edit' &&
+                    isCurrentRowSelected(rowId, selectedRowValues) &&
                     aCell.column.id !== PRIMARY_KEY ? (
                       aCell.render('EditableCell')
                     ) : (

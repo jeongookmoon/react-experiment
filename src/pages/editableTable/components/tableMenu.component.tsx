@@ -1,9 +1,6 @@
 import { Button } from '@material-ui/core';
 import React, { Dispatch, ReactElement, SetStateAction } from 'react';
-import {
-  defaultJobsStatus,
-  rowProps,
-} from '../types/tableTypesAndDefaultValues';
+import { jobsStatusType, rowProps } from '../constants/types';
 import { SearchComponent } from './tableComponent/subComponent/search.component';
 
 function TableMenuComponent({
@@ -12,18 +9,28 @@ function TableMenuComponent({
   jobsStatusSet,
   selectedRowValues,
   updateTableData,
-  editedRowValuesSet,
+  selectedRowValuesSet,
+  editedRowSet,
   globalFilter,
   setGlobalFilter,
+  initNewRow,
+  removeNewRow,
+  addNewRow,
+  deleteRow,
 }: {
-  isAnyJobInProcess: (obj: typeof defaultJobsStatus) => boolean;
-  jobsStatus: typeof defaultJobsStatus;
-  jobsStatusSet: Dispatch<SetStateAction<typeof defaultJobsStatus>>;
+  isAnyJobInProcess: (jobType: jobsStatusType) => boolean;
+  jobsStatus: jobsStatusType;
+  jobsStatusSet: Dispatch<SetStateAction<jobsStatusType>>;
   selectedRowValues: rowProps | undefined;
   updateTableData: () => void;
-  editedRowValuesSet: Dispatch<SetStateAction<rowProps | undefined>>;
+  selectedRowValuesSet: Dispatch<SetStateAction<rowProps | undefined>>;
+  editedRowSet: Dispatch<SetStateAction<rowProps | undefined>>;
   globalFilter: string;
   setGlobalFilter: (filterValue: string) => void;
+  initNewRow: () => void;
+  removeNewRow: () => void;
+  addNewRow: () => void;
+  deleteRow: () => void;
 }): ReactElement {
   return (
     <div
@@ -37,10 +44,9 @@ function TableMenuComponent({
         type="button"
         disabled={isAnyJobInProcess(jobsStatus)}
         onClick={() => {
-          if (selectedRowValues !== undefined)
-            jobsStatusSet(prev => {
-              return { ...prev, add: true };
-            });
+          jobsStatusSet('add');
+          selectedRowValuesSet(undefined);
+          initNewRow();
         }}
       >
         Add
@@ -50,34 +56,29 @@ function TableMenuComponent({
         type="button"
         disabled={isAnyJobInProcess(jobsStatus)}
         onClick={() => {
-          if (selectedRowValues !== undefined)
-            jobsStatusSet(prev => {
-              return { ...prev, edit: true };
-            });
+          if (selectedRowValues !== undefined) {
+            jobsStatusSet('edit');
+          }
         }}
       >
         Edit
       </Button>
 
-      {/* <Button
-          type="button"
-          disabled={beginEdit}
-          onClick={() => {
-            if (selectedRowValues !== undefined) beginEditSet(true);
-          }}
-        >
-          Delete
-        </Button> */}
-
       <Button
         type="button"
-        disabled={jobsStatus.edit || jobsStatus.add}
+        disabled={!isAnyJobInProcess(jobsStatus)}
         onClick={() => {
-          jobsStatusSet(prev => {
-            return { ...prev, edit: false };
-          });
-          updateTableData();
-          editedRowValuesSet(undefined);
+          switch (jobsStatus) {
+            case 'add':
+              addNewRow();
+              removeNewRow();
+              break;
+            case 'edit':
+              updateTableData();
+              editedRowSet(undefined);
+              break;
+          }
+          jobsStatusSet(undefined);
         }}
       >
         Update
@@ -85,15 +86,26 @@ function TableMenuComponent({
 
       <Button
         type="button"
-        disabled={!jobsStatus.edit}
+        disabled={!isAnyJobInProcess(jobsStatus)}
         onClick={() => {
-          jobsStatusSet(prev => {
-            return { ...prev, edit: false };
-          });
-          editedRowValuesSet(undefined);
+          jobsStatusSet(undefined);
+          editedRowSet(undefined);
+          removeNewRow();
         }}
       >
         Cancel
+      </Button>
+
+      <Button
+        type="button"
+        disabled={isAnyJobInProcess(jobsStatus)}
+        onClick={() => {
+          if (selectedRowValues) {
+            deleteRow();
+          }
+        }}
+      >
+        Delete
       </Button>
 
       <SearchComponent filter={globalFilter} filterSet={setGlobalFilter} />

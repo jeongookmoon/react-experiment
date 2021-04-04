@@ -1,5 +1,5 @@
 import React, { ReactElement, useEffect, useState } from 'react';
-import { rowProps } from '../../../types/tableTypesAndDefaultValues';
+import { rowProps } from '../../../constants/types';
 
 export const EditableCell = ({
   value: initialCellValue,

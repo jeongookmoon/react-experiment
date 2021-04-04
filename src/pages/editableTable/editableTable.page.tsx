@@ -11,21 +11,17 @@ import HashTagHeader from './components/hashTagsHeader.component';
 import TableComponent from './components/tableComponent/table.component';
 import TableMenuComponent from './components/tableMenu.component';
 import styles from './editableTable.style.scss';
-import {
-  defaultJobsStatus,
-  rowProps,
-} from './types/tableTypesAndDefaultValues';
+import { jobsStatusType, rowProps } from './constants/types';
 import MOCK_DATA from '../../../mock_data/data__id_name_email_gender_ip.json';
 import { GROUPED_COLUMNS } from './constants/columns';
 import { ColumnFilter } from './components/tableComponent/subComponent/columnFilter.component';
 import { EditableCell } from './components/tableComponent/subComponent/editableCell.component';
 import NavigatorComponent from './components/navigator.component';
 import TableController from './components/tableController.component';
-import { NON_SELECTED } from './constants/tableGeneral';
 import VerticalSpacing from '../../globals/component';
 
-const isAnyJobInProcess = (obj: typeof defaultJobsStatus): boolean =>
-  Object.keys(obj).some(key => obj[key as keyof typeof defaultJobsStatus]);
+const isAnyJobInProcess = (jobsStatus: jobsStatusType): boolean =>
+  jobsStatus !== undefined;
 
 function EditableTable(): ReactElement {
   const columns = useMemo(() => GROUPED_COLUMNS, []);
@@ -39,31 +35,14 @@ function EditableTable(): ReactElement {
     []
   );
 
-  const [data, dataSet] = useState(mockData);
-  const [jobsStatus, jobsStatusSet] = useState(defaultJobsStatus);
-
-  const [selectedRowId, selectedRowIdSet] = useState(NON_SELECTED);
+  const [data, dataSet] = useState(mockData as rowProps[]);
+  const [jobsStatus, jobsStatusSet] = useState<jobsStatusType>(undefined);
   const [selectedRowValues, selectedRowValuesSet] = useState<
     rowProps | undefined
   >(undefined);
 
-  const [editedRowValues, editedRowValuesSet] = useState<rowProps | undefined>(
-    undefined
-  );
-  const [addedRow, addedRowSet] = useState<rowProps[] | undefined>(undefined);
-
-  const updateTableData = () => {
-    if (editedRowValues) {
-      dataSet(
-        data.map((row, index) => {
-          if (index === Number(editedRowValues.id) - 1) {
-            return editedRowValues;
-          }
-          return row;
-        })
-      );
-    }
-  };
+  const [editedRow, editedRowSet] = useState<rowProps | undefined>(undefined);
+  const [newRow, newRowSet] = useState<rowProps | undefined>(undefined);
 
   const updateOrKeepEditedRowData = ({
     rowValues,
@@ -72,11 +51,55 @@ function EditableTable(): ReactElement {
   }: // TODO: put explicit type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Hooks<any>): void => {
-    const newData = editedRowValues
-      ? { ...editedRowValues, [columnId]: cellValue }
+    const newData = editedRow
+      ? { ...editedRow, [columnId]: cellValue }
       : { ...rowValues, [columnId]: cellValue };
 
-    editedRowValuesSet(newData);
+    editedRowSet(newData);
+  };
+
+  const initNewRow = () => {
+    newRowSet({
+      id: data.length + 1,
+      first_name: '',
+      last_name: '',
+      email: '',
+      gender: '',
+      ip_address: '',
+    });
+  };
+
+  const removeNewRow = () => {
+    newRowSet(undefined);
+  };
+
+  // CRUD operations:
+  const addNewRow = () => {
+    // make /add mutation -> refetch to update data
+    if (newRow) dataSet(data.concat(newRow));
+  };
+
+  const updateTableData = () => {
+    // make /edit mutation -> refetch to update data
+    if (editedRow) {
+      dataSet(
+        data.map((row, index) => {
+          if (index === editedRow.id - 1) {
+            return editedRow;
+          }
+          return row;
+        })
+      );
+    }
+  };
+
+  const deleteRow = () => {
+    // make /delete mutation -> refetch to update data
+    if (editedRow) {
+      dataSet(prev => {
+        return prev.filter(eachRow => eachRow.id !== editedRow.id);
+      });
+    }
   };
 
   const {
@@ -118,9 +141,14 @@ function EditableTable(): ReactElement {
         jobsStatusSet={jobsStatusSet}
         selectedRowValues={selectedRowValues}
         updateTableData={updateTableData}
-        editedRowValuesSet={editedRowValuesSet}
+        selectedRowValuesSet={selectedRowValuesSet}
+        editedRowSet={editedRowSet}
         globalFilter={globalFilter}
         setGlobalFilter={setGlobalFilter}
+        initNewRow={initNewRow}
+        removeNewRow={removeNewRow}
+        addNewRow={addNewRow}
+        deleteRow={deleteRow}
       />
       <VerticalSpacing />
 
@@ -131,13 +159,12 @@ function EditableTable(): ReactElement {
           headerGroups={headerGroups}
           prepareRow={prepareRow}
           page={page}
-          selectedRowId={selectedRowId}
-          data={data}
-          isAnyJobInProcess={isAnyJobInProcess}
           jobsStatus={jobsStatus}
           jobsStatusSet={jobsStatusSet}
-          selectedRowIdSet={selectedRowIdSet}
+          selectedRowValues={selectedRowValues}
           selectedRowValuesSet={selectedRowValuesSet}
+          newRow={newRow}
+          newRowSet={newRowSet}
         />
       </div>
 
@@ -162,11 +189,11 @@ function EditableTable(): ReactElement {
         <code>
           {JSON.stringify(
             {
-              selectedRowId,
+              newRow,
               selectedRowValues,
               jobsStatus,
               globalFilter,
-              editedRowValues,
+              editedRow,
             },
             null,
             2
