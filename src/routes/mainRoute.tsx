@@ -1,21 +1,13 @@
 import React, { ReactElement } from 'react';
-import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import UnknownPage from '../pages/unknown.page';
 import EditableTable from '../pages/editableTable/editableTable.page';
-import { Typography } from '@material-ui/core';
+import TopNavBar from '../components/topNavbar.component';
 
 function MainRoute(): ReactElement {
   return (
     <Router>
-      <div style={{ backgroundColor: '#f1f5f1', height: '3em' }}>
-        <Link to="/" style={{ textDecoration: 'none' }}>
-          <Typography
-            style={{ color: 'grey', cursor: 'pointer', padding: '1em' }}
-          >
-            InlineEditTable
-          </Typography>
-        </Link>
-      </div>
+      <TopNavBar />
       <Switch>
         <Route exact path="/">
           <EditableTable />

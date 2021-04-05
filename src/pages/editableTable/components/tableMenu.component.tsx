@@ -1,15 +1,15 @@
 import { Button } from '@material-ui/core';
 import React, { Dispatch, ReactElement, SetStateAction } from 'react';
 import { jobsStatusType, rowProps } from '../constants/types';
-import { SearchComponent } from './tableComponent/subComponent/search.component';
+import SearchComponent from './tableComponent/subComponent/search.component';
 
 function TableMenuComponent({
   isAnyJobInProcess,
   jobsStatus,
   jobsStatusSet,
-  selectedRowValues,
+  selectedRow,
   updateTableData,
-  selectedRowValuesSet,
+  selectedRowSet,
   editedRowSet,
   globalFilter,
   setGlobalFilter,
@@ -21,9 +21,9 @@ function TableMenuComponent({
   isAnyJobInProcess: (jobType: jobsStatusType) => boolean;
   jobsStatus: jobsStatusType;
   jobsStatusSet: Dispatch<SetStateAction<jobsStatusType>>;
-  selectedRowValues: rowProps | undefined;
+  selectedRow: rowProps | undefined;
   updateTableData: () => void;
-  selectedRowValuesSet: Dispatch<SetStateAction<rowProps | undefined>>;
+  selectedRowSet: Dispatch<SetStateAction<rowProps | undefined>>;
   editedRowSet: Dispatch<SetStateAction<rowProps | undefined>>;
   globalFilter: string;
   setGlobalFilter: (filterValue: string) => void;
@@ -45,7 +45,7 @@ function TableMenuComponent({
         disabled={isAnyJobInProcess(jobsStatus)}
         onClick={() => {
           jobsStatusSet('add');
-          selectedRowValuesSet(undefined);
+          selectedRowSet(undefined);
           initNewRow();
         }}
       >
@@ -56,7 +56,7 @@ function TableMenuComponent({
         type="button"
         disabled={isAnyJobInProcess(jobsStatus)}
         onClick={() => {
-          if (selectedRowValues !== undefined) {
+          if (selectedRow !== undefined) {
             jobsStatusSet('edit');
           }
         }}
@@ -100,7 +100,7 @@ function TableMenuComponent({
         type="button"
         disabled={isAnyJobInProcess(jobsStatus)}
         onClick={() => {
-          if (selectedRowValues) {
+          if (selectedRow) {
             deleteRow();
           }
         }}

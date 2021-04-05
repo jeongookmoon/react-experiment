@@ -1,7 +1,9 @@
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
+import { materialTheme } from '../../../constants/constants';
+import { ThemeProvider } from '@material-ui/core';
 
-export const SearchComponent = ({
+const SearchComponent = ({
   filter,
   filterSet,
 }: {
@@ -9,12 +11,16 @@ export const SearchComponent = ({
   filterSet: (filterValue: string) => void;
 }): React.ReactElement => {
   return (
-    <TextField
-      value={filter || ''}
-      onChange={event => filterSet(event.target.value)}
-      size="small"
-      label="Search All Columns"
-      style={{ marginLeft: 'auto' }}
-    />
+    <ThemeProvider theme={materialTheme}>
+      <TextField
+        value={filter || ''}
+        onChange={event => filterSet(event.target.value)}
+        size="small"
+        label="Search All Columns"
+        style={{ marginLeft: 'auto' }}
+      />
+    </ThemeProvider>
   );
 };
+
+export default SearchComponent;

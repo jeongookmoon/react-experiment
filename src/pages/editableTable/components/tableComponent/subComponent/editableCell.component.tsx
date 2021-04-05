@@ -1,5 +1,7 @@
+import { Input, ThemeProvider } from '@material-ui/core';
 import React, { ReactElement, useEffect, useState } from 'react';
 import { rowProps } from '../../../constants/types';
+import { materialTheme } from '../../../constants/constants';
 
 export const EditableCell = ({
   value: initialCellValue,
@@ -35,12 +37,14 @@ export const EditableCell = ({
   }, [initialCellValue]);
 
   return (
-    <input
-      value={cellValue}
-      onChange={event => {
-        cellValueSet(event.target.value);
-      }}
-      onBlur={() => updateOrKeepEditedRowData(newEditedRowData)} // set new row data
-    />
+    <ThemeProvider theme={materialTheme}>
+      <Input
+        value={cellValue}
+        onChange={event => {
+          cellValueSet(event.target.value);
+        }}
+        onBlur={() => updateOrKeepEditedRowData(newEditedRowData)} // set new row data
+      />
+    </ThemeProvider>
   );
 };

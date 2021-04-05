@@ -25,8 +25,8 @@ function TableComponent({
   page,
   jobsStatus,
   jobsStatusSet,
-  selectedRowValues,
-  selectedRowValuesSet,
+  selectedRow,
+  selectedRowSet,
   newRow,
   newRowSet,
 }: {
@@ -48,23 +48,23 @@ function TableComponent({
   page: Row<object>[];
   jobsStatus: jobsStatusType;
   jobsStatusSet: Dispatch<SetStateAction<jobsStatusType>>;
-  selectedRowValues: rowProps | undefined;
-  selectedRowValuesSet: Dispatch<SetStateAction<rowProps | undefined>>;
+  selectedRow: rowProps | undefined;
+  selectedRowSet: Dispatch<SetStateAction<rowProps | undefined>>;
   newRow: rowProps | undefined;
   newRowSet: Dispatch<SetStateAction<rowProps | undefined>>;
 }): ReactElement {
   const isCurrentRowSelected = (
     rowId: number,
-    selectedRowValues: rowProps | undefined
+    selectedRow: rowProps | undefined
   ) => {
-    return selectedRowValues && selectedRowValues.id === rowId;
+    return selectedRow && selectedRow.id === rowId;
   };
 
   const cancelCurrentJobAndSelectTheRow = (
     rowValues: rowProps | undefined
   ): void => {
     jobsStatusSet(undefined);
-    selectedRowValuesSet(rowValues);
+    selectedRowSet(rowValues);
     newRowSet(undefined);
   };
 
@@ -129,14 +129,14 @@ function TableComponent({
         </TableRow>
         {/* Body */}
         {page.map((aRow, tbRowIndex) => {
-          const rowId = parseInt(aRow.id) + 1; // add 1 since rowId starts from 1 instead of 0
+          const rowId = parseInt(aRow.values.id);
           prepareRow(aRow);
           return (
             <TableRow
               {...aRow.getRowProps()}
               key={'tableBodyRow' + tbRowIndex}
               style={
-                isCurrentRowSelected(rowId, selectedRowValues)
+                isCurrentRowSelected(rowId, selectedRow)
                   ? {
                       transition: '.2s',
                       backgroundColor: '#f1f5f1',
@@ -160,15 +160,15 @@ function TableComponent({
                           break;
 
                         case 'edit':
-                          if (!isCurrentRowSelected(rowId, selectedRowValues))
+                          if (!isCurrentRowSelected(rowId, selectedRow))
                             cancelCurrentJobAndSelectTheRow(
                               aCell.row.values as rowProps
                             );
                           break;
 
                         default:
-                          selectedRowValuesSet(
-                            isCurrentRowSelected(rowId, selectedRowValues)
+                          selectedRowSet(
+                            isCurrentRowSelected(rowId, selectedRow)
                               ? undefined
                               : (aCell.row.values as rowProps)
                           );
@@ -176,7 +176,7 @@ function TableComponent({
                     }}
                   >
                     {jobsStatus === 'edit' &&
-                    isCurrentRowSelected(rowId, selectedRowValues) &&
+                    isCurrentRowSelected(rowId, selectedRow) &&
                     aCell.column.id !== PRIMARY_KEY ? (
                       aCell.render('EditableCell')
                     ) : (

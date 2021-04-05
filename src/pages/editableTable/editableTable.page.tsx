@@ -37,9 +37,9 @@ function EditableTable(): ReactElement {
 
   const [data, dataSet] = useState(mockData as rowProps[]);
   const [jobsStatus, jobsStatusSet] = useState<jobsStatusType>(undefined);
-  const [selectedRowValues, selectedRowValuesSet] = useState<
-    rowProps | undefined
-  >(undefined);
+  const [selectedRow, selectedRowSet] = useState<rowProps | undefined>(
+    undefined
+  );
 
   const [editedRow, editedRowSet] = useState<rowProps | undefined>(undefined);
   const [newRow, newRowSet] = useState<rowProps | undefined>(undefined);
@@ -60,7 +60,7 @@ function EditableTable(): ReactElement {
 
   const initNewRow = () => {
     newRowSet({
-      id: data.length + 1,
+      id: data[data.length - 1].id + 1,
       first_name: '',
       last_name: '',
       email: '',
@@ -95,10 +95,11 @@ function EditableTable(): ReactElement {
 
   const deleteRow = () => {
     // make /delete mutation -> refetch to update data
-    if (editedRow) {
+    if (selectedRow) {
       dataSet(prev => {
-        return prev.filter(eachRow => eachRow.id !== editedRow.id);
+        return prev.filter(eachRow => eachRow.id !== selectedRow.id);
       });
+      selectedRowSet(undefined);
     }
   };
 
@@ -139,9 +140,9 @@ function EditableTable(): ReactElement {
         isAnyJobInProcess={isAnyJobInProcess}
         jobsStatus={jobsStatus}
         jobsStatusSet={jobsStatusSet}
-        selectedRowValues={selectedRowValues}
+        selectedRow={selectedRow}
         updateTableData={updateTableData}
-        selectedRowValuesSet={selectedRowValuesSet}
+        selectedRowSet={selectedRowSet}
         editedRowSet={editedRowSet}
         globalFilter={globalFilter}
         setGlobalFilter={setGlobalFilter}
@@ -161,8 +162,8 @@ function EditableTable(): ReactElement {
           page={page}
           jobsStatus={jobsStatus}
           jobsStatusSet={jobsStatusSet}
-          selectedRowValues={selectedRowValues}
-          selectedRowValuesSet={selectedRowValuesSet}
+          selectedRow={selectedRow}
+          selectedRowSet={selectedRowSet}
           newRow={newRow}
           newRowSet={newRowSet}
         />
@@ -190,7 +191,7 @@ function EditableTable(): ReactElement {
           {JSON.stringify(
             {
               newRow,
-              selectedRowValues,
+              selectedRow,
               jobsStatus,
               globalFilter,
               editedRow,
